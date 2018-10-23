@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{A7691199-33F3-47DF-808B-7C763FAB94F0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>VARSEres</RootNamespace>
+    <AssemblyName>VARSEres</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Core\" />
+    <Folder Include="Ui\" />
+    <Folder Include="Res\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Ui\Ppal.cs" />
+    <Compile Include="Core\Persistence.cs" />
+    <Compile Include="Core\Result.cs" />
+    <Compile Include="Core\Id.cs" />
+    <Compile Include="Ui\MainWindowView.cs" />
+    <Compile Include="Ui\MainWindowCore.cs" />
+    <Compile Include="Core\I18n.cs" />
+    <Compile Include="Core\AppInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Res\app_icon.png" />
+    <EmbeddedResource Include="Res\about_icon.png" />
+    <EmbeddedResource Include="Res\open_icon.png" />
+    <EmbeddedResource Include="Res\save_icon.png" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
