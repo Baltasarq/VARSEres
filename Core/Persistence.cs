@@ -8,6 +8,8 @@
     public static class Persistence
     {
 		static string EtqId = "_id";
+        static string EtqExperimentId = "experiment_id";
+        static string EtqUsrId = "user_id";
         static string EtqTypeId = "type_id";
         static string EtqTime = "time";
 		static string EtqName = "name";
@@ -31,7 +33,7 @@
 
             foreach(KeyValuePair<string, JsonValue> attr in evt) {
                 if ( attr.Key == EtqElapsedTime ) {
-                    time = Convert.ToInt64( attr.Value.ToString() );
+                    time = attr.Value;
                 }
                 else
                 if ( attr.Key == EtqType ) {
@@ -39,15 +41,11 @@
                 }
                 else
                 if ( attr.Key == EtqBeatAt ) {
-                    if ( !long.TryParse( attr.Value, out long v ) ) {
-                        value = v;
-                    } else {
-                        throw new ArgumentException( "not a beat: " + value );
-                    }
+                    value = (long) attr.Value;
                 }
                 else
                 if ( attr.Key == EtqTag ) {
-                    value = attr.Value;
+                    value = (string) attr.Value;
                 }
             }
 
@@ -65,7 +63,7 @@
                 if ( value is string tag ) {
                     toret = new Result.TagEvent( time, tag );
                 } else {
-                    throw new ArgumentException( "Not a tag: " + value );
+                    throw new ArgumentException( "not a tag: " + value );
                 }
             }
             else
@@ -73,7 +71,7 @@
                 if ( value is long beat ) {
                     toret = new Result.BeatEvent( time, beat );
                 } else {
-                    throw new ArgumentException( "Not a beat rr: " + value );
+                    throw new ArgumentException( "not a beat rr: " + value );
                 }
             } else {
                 throw new ArgumentException( "invalid event type: '" + type + "'" );
@@ -85,47 +83,61 @@
         public static Result Load(string fileName)
         {
 			long id = -1; 
+            long usrId = -1;
+            long exprId = -1;
 			var events = new List<Result.Event>();
 			string name = "";
             string typeId = "";
 			long date = -1;
             long time = -1;
 
-			using (StreamReader r = new StreamReader( fileName ))
-            {
-                var json = r.ReadToEnd();
-				var parsedJson = JsonValue.Parse( json );
+            try {
+    			using (StreamReader r = new StreamReader( fileName ))
+                {
+                    var json = r.ReadToEnd();
+    				var parsedJson = JsonValue.Parse( json );
 
-				foreach (KeyValuePair<string, JsonValue> item in parsedJson)
-				{
-					if ( item.Key == EtqId ) {
-						id = Convert.ToInt64( item.Value.ToString() );
-					}
-					else
-                    if ( item.Key == EtqTypeId ) {
-                        typeId = item.Value.ToString();
-                    }
-                    else
-					if ( item.Key == EtqName ) {
-                        name = item.Value.ToString();
-                    }
-					else
-                    if ( item.Key == EtqDate ) {
-						date = Convert.ToInt64( item.Value.ToString() );
-                    }
-                    else
-                    if ( item.Key == EtqTime ) {
-                        time = Convert.ToInt64( item.Value.ToString() );
-                    }
-					else
-                    if ( item.Key == EtqEvents ) {
-    					if ( item.Value is JsonArray jEvents ) {
-							foreach (JsonObject evt in jEvents ) {
-                                events.Add( LoadEvent( evt ) );
-							}
+    				foreach (KeyValuePair<string, JsonValue> item in parsedJson)
+    				{
+    					if ( item.Key == EtqId ) {
+    						id = item.Value;
     					}
+    					else
+                        if ( item.Key == EtqTypeId ) {
+                            typeId = item.Value;
+                        }
+                        else
+    					if ( item.Key == EtqName ) {
+                            name = item.Value;
+                        }
+    					else
+                        if ( item.Key == EtqDate ) {
+    						date = item.Value;
+                        }
+                        else
+                        if ( item.Key == EtqTime ) {
+                            time = item.Value;
+                        }
+                        else
+                        if ( item.Key == EtqExperimentId ) {
+                            exprId = item.Value;
+                        }
+                        else
+                        if ( item.Key == EtqUsrId ) {
+                            usrId = item.Value;
+                        }
+    					else
+                        if ( item.Key == EtqEvents ) {
+        					if ( item.Value is JsonArray jEvents ) {
+    							foreach (JsonObject evt in jEvents ) {
+                                    events.Add( LoadEvent( evt ) );
+    							}
+        					}
+                        }
                     }
                 }
+            } catch(FormatException exc) {
+                throw new ArgumentException( "format error: " + exc.Message );    
             }
 
             // Chk
@@ -147,7 +159,11 @@
                 throw new ArgumentException( "missing total time" );
             }
 
-			return new Result( new Id( id ), date, name, time, events );
+			return new Result( new Id( id ),
+                               date, name, time,
+                               new Id( exprId ),
+                               new Id( usrId ),
+                               events );
         }
     }
 }

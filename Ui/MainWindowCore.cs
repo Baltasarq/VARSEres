@@ -1,5 +1,6 @@
 ﻿namespace VARSEres.Ui {
     using System;
+    using System.Globalization;
     using System.Windows.Forms;
 
 	using Core;
@@ -63,13 +64,136 @@
 			return;
         }
 
+        /// <summary>Updates the view of the result.</summary>
         void UpdateResult()
 		{
-			foreach(Core.Result.Event evt in this.Result.Events) {
-				this.MainWindowView.TxtTags.Text = evt.ToString();
-			}
-		}
+            int numTags = 0;
+            int numRR = 0;
+            long accTime = 0;
+            long maxRR = long.MinValue;
+            long minRR = long.MaxValue;
+            ListBox lbAll = this.MainWindowView.LbAll;
+            ListBox lbTags = this.MainWindowView.LbTags;
+            ListBox lbRR = this.MainWindowView.LbRR;
+            TextBox tbSummary = this.MainWindowView.TbSummary;
 
+            // Hide all
+            lbAll.Hide();
+            lbAll.Items.Clear();
+            
+            lbTags.Hide();
+            lbTags.Items.Clear();
+            
+            lbRR.Hide();
+            lbRR.Items.Clear();
+
+            // Run over all events and clasify
+            if ( this.Result != null ) {
+                foreach(Result.Event evt in this.Result.Events) {
+                    lbAll.Items.Add( evt.ToString() );
+                    
+                    if ( evt.Type == Result.Event.EventType.Tag ) {
+                        lbTags.Items.Add( evt.ToString() );
+                        ++numTags;
+                    }
+                    else
+                    if ( evt.Type == Result.Event.EventType.Beat ) {
+                        var beatEvt = (Result.BeatEvent) evt;
+                    
+                        lbRR.Items.Add( beatEvt.ToString() );
+                        ++numRR;
+
+                        accTime += beatEvt.Value;
+                        maxRR = Math.Max( maxRR, beatEvt.Value );
+                        minRR = Math.Min( minRR, beatEvt.Value );
+                    } else {
+                        MessageBox.Show( "Event type is not supported" );
+                    }
+                }
+            }
+            
+            // Build report
+            var report = @"
+Id:                  ${id}
+Id experiment:       ${experimentid}
+Id record:           ${usrid}      
+            
+Number of tags:      ${numtags}
+Number of beats:     ${numbeats}
+
+Reported total time: ${time} ms
+Accumulated RR time: ${acctime} ms
+Max RR:              ${maxrr} ms
+Min RR:              ${minrr} ms
+Avg RR:              ${avgrr} ms";
+
+            var strId = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                this.Result.Id.Value );
+
+            var strExperimentId = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                this.Result.ExperimentId.Value );
+
+            var strUsrId = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                this.Result.UsrId.Value );
+
+            var strAccTime = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                accTime );
+                                
+            var strTime = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                this.Result.Time );
+                                
+            var strNumTags = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                numTags );
+                                
+            var strNumRR = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                numRR );
+                                
+            var strMinRR = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                minRR );
+                                
+            var strMaxRR = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                maxRR );
+                                
+            var strAvgRR = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0:d7}",
+                                (int) Math.Round( ( (double) maxRR + minRR ) / 2 ) );
+                                
+            tbSummary.Text = report.Replace( "${id}", strId )
+                                .Replace( "${experimentid}", strExperimentId )
+                                .Replace( "${usrid}", strUsrId )
+                                .Replace( "${numtags}", strNumTags )
+                                .Replace( "${numbeats}", strNumRR )
+                                .Replace( "${time}", strTime )
+                                .Replace( "${acctime}", strAccTime )
+                                .Replace( "${maxrr}", strMaxRR )
+                                .Replace( "${minrr}", strMinRR )
+                                .Replace( "${avgrr}", strAvgRR );
+
+            // Restore all
+            lbAll.Show();
+            lbTags.Show();
+            lbRR.Show();
+		}
+        
         /// <summary>Saving the results and text files.</summary>
         void OnSave()
         {

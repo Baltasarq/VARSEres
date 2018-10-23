@@ -5,6 +5,7 @@
     public static class I18n {
         /// <summary>String identifiers.</summary>
         public enum Id {
+            All,
             Tag,
             RR,
             Summary,
@@ -13,16 +14,18 @@
 
         /// <summary>English strings.</summary>
         public static string[] StrEN = {
+            "All",
             "Tag",
-            "rr",
+            "RR",
             "Summary",
             "Loading",
         };
 
         /// <summary>Spanish strings.</summary>
         public static string[] StrES = {
+            "Todo",
             "Etiqueta",
-            "rr",
+            "RR",
             "Resumen",
             "Cargando",
         };

@@ -68,15 +68,19 @@
         /// </summary>
         /// <param name="id">Identifier.</param>
 		/// <param name="date">The date (as long).</param>
-        /// <param name="date">The total time for the experiment (as long).</param>
+        /// <param name="time">The total time for the experiment (as long).</param>
 		/// <param name="name">The name (as string, normally it contains data about the experiment and user).</param>
+        /// <param name="usrId">User's id.</param>
+        /// <param name="exprId">Experiment's id.</param>
         /// <param name="events">Events.</param>
-        public Result(Id id, long date, string name, long time, IEnumerable<Event> events)
+        public Result(Id id, long date, string name, long time, Id exprId, Id usrId, IEnumerable<Event> events)
         {
 			this.Id = id;
 			this.Date = date;
 			this.name = name;
             this.Time = time;
+            this.UsrId = usrId;
+            this.ExperimentId = exprId;
             this.events = new List<Event>( events );
         }
 
@@ -93,6 +97,22 @@
         /// </summary>
         /// <value>The <see cref="Id"/>.</value>
         public Id Id {
+            get; private set;
+        }
+        
+        /// <summary>
+        /// Gets the experiment identifier.
+        /// </summary>
+        /// <value>The experiment <see cref="Id"/>.</value>
+        public Id ExperimentId {
+            get; private set;
+        }
+        
+        /// <summary>
+        /// Gets the user identifier.
+        /// </summary>
+        /// <value>The user <see cref="Id"/>.</value>
+        public Id UsrId {
             get; private set;
         }
 

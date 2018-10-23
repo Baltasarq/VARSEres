@@ -11,7 +11,7 @@
     /// The main window view.
     /// </summary>
     public class MainWindowView: Form {
-        enum Sheets { Tags, RR, Summary };
+        enum Sheets { Summary, Tags, RR, All };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:VARSEres.Ui.MainWindowView"/> class.
@@ -49,32 +49,39 @@
         TabControl BuildNotebook()
         {
             var toret = new TabControl { Dock = DockStyle.Fill };
+            var font = new Font( FontFamily.GenericMonospace, this.BaseFont.Size + 2 );
 
+            toret.TabPages.Add( I18n.Get( I18n.Id.Summary ) );
             toret.TabPages.Add( I18n.Get( I18n.Id.Tag ) );
             toret.TabPages.Add( I18n.Get( I18n.Id.RR ) );
-            toret.TabPages.Add( I18n.Get( I18n.Id.Summary ) );
+            toret.TabPages.Add( I18n.Get( I18n.Id.All ) );
 
-            this.TxtTags = new TextBox{
+            this.LbAll = new ListBox {
                 Dock = DockStyle.Fill,
-                Multiline = true,
-                ReadOnly = true
+                Font = font
             };
 
-            this.TxtRR = new TextBox{
+            this.LbTags = new ListBox {
                 Dock = DockStyle.Fill,
-                Multiline = true,
-                ReadOnly = true
+                Font = font
             };
 
-            this.TxtSummary = new TextBox{
+            this.LbRR = new ListBox {
                 Dock = DockStyle.Fill,
-                Multiline = true,
-                ReadOnly = true
+                Font = font
             };
 
-            toret.TabPages[ (int) Sheets.Tags ].Controls.Add( this.TxtTags );
-            toret.TabPages[ (int) Sheets.RR ].Controls.Add( this.TxtRR );
-            toret.TabPages[ (int) Sheets.Summary ].Controls.Add( this.TxtSummary );
+            this.TbSummary = new TextBox {
+                Dock = DockStyle.Fill,
+                Multiline = true,
+                ReadOnly = true,
+                Font = font
+            };
+
+            toret.TabPages[ (int) Sheets.Summary ].Controls.Add( this.TbSummary );
+            toret.TabPages[ (int) Sheets.Tags ].Controls.Add( this.LbTags );
+            toret.TabPages[ (int) Sheets.RR ].Controls.Add( this.LbRR );
+            toret.TabPages[ (int) Sheets.All ].Controls.Add( this.LbAll );
 
             return toret;
         }
@@ -267,15 +274,19 @@
             get; private set;
         }
 
-        public TextBox TxtRR {
+        public ListBox LbRR {
             get; private set;
         }
 
-        public TextBox TxtTags {
+        public ListBox LbTags {
             get; private set;
         }
 
-        public TextBox TxtSummary {
+        public TextBox TbSummary {
+            get; private set;
+        }
+        
+        public ListBox LbAll {
             get; private set;
         }
     }
