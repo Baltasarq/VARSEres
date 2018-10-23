@@ -8,6 +8,7 @@
             Tag,
             RR,
             Summary,
+            Loading,
         }
 
         /// <summary>English strings.</summary>
@@ -15,6 +16,7 @@
             "Tag",
             "rr",
             "Summary",
+            "Loading",
         };
 
         /// <summary>Spanish strings.</summary>
@@ -22,6 +24,7 @@
             "Etiqueta",
             "rr",
             "Resumen",
+            "Cargando",
         };
 
         /// <summary>Chose among strings.</summary>

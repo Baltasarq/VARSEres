@@ -2,6 +2,8 @@
     using System;
     using System.Windows.Forms;
 
+	using Core;
+
     /// <summary>
     /// Main window's backbone.
     /// </summary>
@@ -41,8 +43,32 @@
         /// <summary>Opening a results file.</summary>
         void OnOpen()
         {
-            
+			using(OpenFileDialog openDlg = new OpenFileDialog())
+            {
+                openDlg.InitialDirectory = ".";
+                openDlg.Filter = "res files (*.res)|*.res|All files (*.*)|*.*";
+                openDlg.FilterIndex = 2;
+                openDlg.RestoreDirectory = true;
+
+                if ( openDlg.ShowDialog() == DialogResult.OK ) {
+					try {
+						this.Result = Persistence.Load(openDlg.FileName);                  
+					} catch(ArgumentException exc) {
+						MessageBox.Show( exc.Message, I18n.Get( I18n.Id.Loading ) );
+					}
+                }
+            }
+
+			this.UpdateResult();
+			return;
         }
+
+        void UpdateResult()
+		{
+			foreach(Core.Result.Event evt in this.Result.Events) {
+				this.MainWindowView.TxtTags.Text = evt.ToString();
+			}
+		}
 
         /// <summary>Saving the results and text files.</summary>
         void OnSave()
@@ -69,5 +95,13 @@
         public MainWindowView MainWindowView {
             get; private set;
         }
+
+        /// <summary>
+        /// Gets the result being managed.
+        /// </summary>
+		/// <value>The <see cref="Result"/> object.</value>
+		public Result Result {
+			get; private set;
+		}
     }
 }
