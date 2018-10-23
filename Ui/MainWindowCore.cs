@@ -47,7 +47,7 @@
             {
                 openDlg.InitialDirectory = ".";
                 openDlg.Filter = "res files (*.res)|*.res|All files (*.*)|*.*";
-                openDlg.FilterIndex = 2;
+                openDlg.FilterIndex = 1;
                 openDlg.RestoreDirectory = true;
 
                 if ( openDlg.ShowDialog() == DialogResult.OK ) {

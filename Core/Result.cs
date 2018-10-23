@@ -2,8 +2,8 @@
     using System.Collections.Generic;
 
     public class Result {
-        /// <summary>The millis this event happened at.</summary>
-        public class Event {
+        /// <summary>Base class for events.</summary>
+        public abstract class Event {
             public enum EventType { Beat, Tag };
 
             /// <summary>The millis this event happened at.</summary>
@@ -16,28 +16,67 @@
                 get; set;
             }
 
-            public string Value {
+            /// <summary>The contents in this event.</summary>
+            public object Content {
                 get; set;
             }
 
-			public override string ToString()
-			{
-				return this.Type + " (@" + this.Time + "): " + this.Value;
-			}
+            public override string ToString()
+            {
+                return this.Type + " (@" + this.Time + "): " + this.Content;
+            }
+        }
+
+        /// <summary>Base class for events.</summary>
+        public abstract class Event<T>: Event {
+            /// <summary>
+            /// Gets or sets the value.
+            /// </summary>
+            /// <value>The value.</value>
+            public T Value {
+                get {
+                    return (T) base.Content;
+                }
+                set {
+                    base.Content = value;
+                }
+            }
 		}
+
+        /// <summary>A heart beat event.</summary>
+        public class BeatEvent: Event<long> {
+            public BeatEvent(long time, long beat)
+            {
+                this.Time = time;
+                this.Type = EventType.Beat;
+                this.Value = beat;
+            }
+        }
+
+        /// <summary>A tag change event.</summary>
+        public class TagEvent: Event<string> {
+            public TagEvent(long time, string tag)
+            {
+                this.Time = time;
+                this.Type = EventType.Tag;
+                this.Value = tag;
+            }
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:VARSEres.Core.Result"/> class.
         /// </summary>
         /// <param name="id">Identifier.</param>
 		/// <param name="date">The date (as long).</param>
+        /// <param name="date">The total time for the experiment (as long).</param>
 		/// <param name="name">The name (as string, normally it contains data about the experiment and user).</param>
         /// <param name="events">Events.</param>
-        public Result(Id id, long date, string name, IEnumerable<Event> events)
+        public Result(Id id, long date, string name, long time, IEnumerable<Event> events)
         {
 			this.Id = id;
 			this.Date = date;
 			this.name = name;
+            this.Time = time;
             this.events = new List<Event>( events );
         }
 
@@ -64,6 +103,14 @@
 		public long Date {
 			get; private set;
 		}
+
+        /// <summary>
+        /// Gets the total time for this experiment.
+        /// </summary>
+        /// <value>The time, as a long in millis.</value>
+        public long Time {
+            get; private set;
+        }
 
 		string name;
         List<Event> events;
