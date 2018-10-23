@@ -1,4 +1,6 @@
-﻿namespace VARSEres.Core
+﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
+
+namespace VARSEres.Core
 {
 	using System;
 	using System.IO;

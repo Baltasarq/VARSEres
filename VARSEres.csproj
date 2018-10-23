@@ -46,6 +46,7 @@
     <Compile Include="Ui\MainWindowCore.cs" />
     <Compile Include="Core\I18n.cs" />
     <Compile Include="Core\AppInfo.cs" />
+    <Compile Include="Ui\Chart.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Res\app_icon.png" />

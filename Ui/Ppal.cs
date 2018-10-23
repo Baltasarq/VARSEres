@@ -1,4 +1,6 @@
-﻿namespace VARSEres.Ui
+﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
+
+namespace VARSEres.Ui
 {
     using System.Windows.Forms;
 

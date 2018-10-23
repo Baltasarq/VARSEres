@@ -1,4 +1,6 @@
-﻿namespace VARSEres.Ui
+﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
+
+namespace VARSEres.Ui
 {
     using System;
     using System.Diagnostics;
@@ -11,7 +13,8 @@
     /// The main window view.
     /// </summary>
     public class MainWindowView: Form {
-        enum Sheets { Summary, Tags, RR, All };
+        static int ChartSize = 512;
+        enum Sheets { Summary, Chart, Tags, RR, All };
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:VARSEres.Ui.MainWindowView"/> class.
@@ -52,6 +55,7 @@
             var font = new Font( FontFamily.GenericMonospace, this.BaseFont.Size + 2 );
 
             toret.TabPages.Add( I18n.Get( I18n.Id.Summary ) );
+            toret.TabPages.Add( I18n.Get( I18n.Id.Chart ) );
             toret.TabPages.Add( I18n.Get( I18n.Id.Tag ) );
             toret.TabPages.Add( I18n.Get( I18n.Id.RR ) );
             toret.TabPages.Add( I18n.Get( I18n.Id.All ) );
@@ -77,8 +81,13 @@
                 ReadOnly = true,
                 Font = font
             };
+            
+            this.Chart = new Chart( ChartSize, ChartSize ) { Dock = DockStyle.Fill };
+            
+            this.Controls.Add( this.Chart );
 
             toret.TabPages[ (int) Sheets.Summary ].Controls.Add( this.TbSummary );
+            toret.TabPages[ (int) Sheets.Chart ].Controls.Add( this.Chart );
             toret.TabPages[ (int) Sheets.Tags ].Controls.Add( this.LbTags );
             toret.TabPages[ (int) Sheets.RR ].Controls.Add( this.LbRR );
             toret.TabPages[ (int) Sheets.All ].Controls.Add( this.LbAll );
@@ -287,6 +296,10 @@
         }
         
         public ListBox LbAll {
+            get; private set;
+        }
+        
+        public Chart Chart {
             get; private set;
         }
     }

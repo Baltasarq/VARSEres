@@ -1,6 +1,10 @@
-﻿namespace VARSEres.Ui {
+﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
+
+namespace VARSEres.Ui {
     using System;
+    using System.Drawing;
     using System.Globalization;
+    using System.Collections.Generic;
     using System.Windows.Forms;
 
 	using Core;
@@ -12,6 +16,7 @@
         public MainWindowCore()
         {
             this.MainWindowView = new MainWindowView();
+            I18n.Language = CultureInfo.CurrentCulture;
 
             // Events
             this.MainWindowView.TbBar.ButtonClick +=
@@ -19,6 +24,13 @@
                         => this.OnToolbarButtonClicked( e.Button );
 
             this.MainWindowView.FormClosed += (sender, e) => this.OnQuit();
+            this.MainWindowView.ResizeEnd += (sender, e) => this.OnResize();
+        }
+        
+        void OnResize()
+        {
+            this.MainWindowView.Chart.Size = this.MainWindowView.ClientSize;
+            this.MainWindowView.Chart.Draw();
         }
 
         /// <summary>Manages the clicks in the toolbar</summary>
@@ -112,7 +124,18 @@
                 }
             }
             
-            // Build report
+            // End
+            tbSummary.Text = this.BuildReport( numTags, numRR, accTime, maxRR, minRR );
+            this.DrawChart();
+
+            // Restore all
+            lbAll.Show();
+            lbTags.Show();
+            lbRR.Show();
+		}
+        
+        string BuildReport(int numTags, int numRR, long accTime, long maxRR, long minRR)
+        {
             var report = @"
 Id:                  ${id}
 Id experiment:       ${experimentid}
@@ -177,7 +200,7 @@ Avg RR:              ${avgrr} ms";
                                 "{0:d7}",
                                 (int) Math.Round( ( (double) maxRR + minRR ) / 2 ) );
                                 
-            tbSummary.Text = report.Replace( "${id}", strId )
+            return report.Replace( "${id}", strId )
                                 .Replace( "${experimentid}", strExperimentId )
                                 .Replace( "${usrid}", strUsrId )
                                 .Replace( "${numtags}", strNumTags )
@@ -187,12 +210,30 @@ Avg RR:              ${avgrr} ms";
                                 .Replace( "${maxrr}", strMaxRR )
                                 .Replace( "${minrr}", strMinRR )
                                 .Replace( "${avgrr}", strAvgRR );
-
-            // Restore all
-            lbAll.Show();
-            lbTags.Show();
-            lbRR.Show();
-		}
+        }
+        
+        void DrawChart()
+        {
+            Chart chart = this.MainWindowView.Chart;
+            var hrs = new List<int>();
+            
+            // Calculate heart beats
+            foreach(Result.Event evt in this.Result.Events) {
+                if ( evt is Result.BeatEvent beatEvt ) {
+                    hrs.Add( (int) ( ( (double) 60 / beatEvt.Value ) * 1000 ) );
+                }
+            }
+            
+            // Finish
+            chart.LegendY = "Heart beats (bpm)";
+            chart.LegendX = "Time (seconds)";
+            chart.Values = hrs;
+            chart.ShowLabels = false;
+            chart.DataPen = new Pen( Color.Red ) { Width = 1 };
+            chart.AxisPen = new Pen( Color.Black ) { Width = 2 };
+            chart.BackColor = Color.White;
+            chart.Draw();
+        }
         
         /// <summary>Saving the results and text files.</summary>
         void OnSave()

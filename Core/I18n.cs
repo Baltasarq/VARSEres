@@ -1,4 +1,6 @@
-﻿namespace VARSEres.Core {
+﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
+
+namespace VARSEres.Core {
     using System.Globalization;
 
     /// <summary>Internationalization.</summary>
@@ -10,6 +12,7 @@
             RR,
             Summary,
             Loading,
+            Chart,
         }
 
         /// <summary>English strings.</summary>
@@ -19,6 +22,7 @@
             "RR",
             "Summary",
             "Loading",
+            "Chart",
         };
 
         /// <summary>Spanish strings.</summary>
@@ -28,6 +32,7 @@
             "RR",
             "Resumen",
             "Cargando",
+            "Gráfica",
         };
 
         /// <summary>Chose among strings.</summary>
