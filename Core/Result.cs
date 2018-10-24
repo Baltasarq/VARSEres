@@ -84,6 +84,25 @@ namespace VARSEres.Core {
             this.UsrId = usrId;
             this.ExperimentId = exprId;
             this.events = new List<Event>( events );
+            this.beats = new List<BeatEvent>();
+            this.tags = new List<TagEvent>();
+
+            this.Classify();
+        }
+
+        void Classify()
+        {
+            foreach(Event evt in this.events) {
+                if ( evt is BeatEvent beat ) {
+                    this.beats.Add( beat );
+                }
+                else
+                if ( evt is TagEvent tag ) {
+                    this.tags.Add( tag );
+                }
+            }
+
+            return;
         }
 
         /// <summary>Gets the events.</summary>
@@ -91,6 +110,22 @@ namespace VARSEres.Core {
         public Event[] Events {
             get {
                 return this.events.ToArray();
+            }
+        }
+
+        /// <summary>Gets the beat events.</summary>
+        /// <value>The events, as an array of <see cref="BeatEvent"/>.</value>
+        public BeatEvent[] Beats {
+            get {
+                return this.beats.ToArray();
+            }
+        }
+
+        /// <summary>Gets the tag events.</summary>
+        /// <value>The events, as an array of <see cref="TagEvent"/>.</value>
+        public TagEvent[] Tags {
+            get {
+                return this.tags.ToArray();
             }
         }
 
@@ -136,5 +171,7 @@ namespace VARSEres.Core {
 
 		string name;
         List<Event> events;
+        List<BeatEvent> beats;
+        List<TagEvent> tags;
     }
 }

@@ -1,6 +1,7 @@
 ﻿// VARSEres (c) 2018 MIT License <baltasarq@gmail.com>
 
 namespace VARSEres.Ui {
+    using System;
     using System.Linq;
     using System.Drawing;
     using System.Windows.Forms;
@@ -14,7 +15,9 @@ namespace VARSEres.Ui {
         
         public Chart(int width, int height)
         {
-            this.values = new List<int>();
+            this.valuesX = new List<int>();
+            this.valuesY = new List<int>();
+
             this.Width = width;
             this.Height = height;
             this.FrameWidth = 50;
@@ -24,8 +27,6 @@ namespace VARSEres.Ui {
             this.DataFont = new Font( FontFamily.GenericMonospace, 12 );
             this.LegendFont = new Font( FontFamily.GenericSansSerif, 12 );
             this.LegendPen = new Pen( Color.Navy );
-        
-            this.Build();
         }
         
         /// <summary>
@@ -33,7 +34,13 @@ namespace VARSEres.Ui {
         /// </summary>
         public void Draw()
         {
+            Bitmap bmp = new Bitmap( this.Width, this.Height );
+
+            this.Image = bmp;
+            this.grf = Graphics.FromImage( bmp );
             this.grf.Clear( this.BackColor );
+
+            // Draw
             this.DrawAxis();
             this.DrawData();
             this.DrawLegends();
@@ -74,21 +81,30 @@ namespace VARSEres.Ui {
         
         void DrawData()
         {
-            int numValues = this.values.Count;
+            int numValues = this.valuesY.Count;
             var p = this.DataOrgPosition;
-            int xGap = this.GraphWidth / ( numValues + 1 );
+            int xGap = (int) ( (double) this.GraphWidth / ( numValues + 1 ) );
             int baseLine = this.DataOrgPosition.Y;
 
+            int maxHeight = this.DataOrgPosition.Y - this.FrameWidth;
+            int max = this.maxValueY - this.minValueY;
+
+            this.imgDataY = new int[ this.normalizedDataY.Length ];
+
+            for(int i = 0; i < this.imgDataY.Length; ++i) {
+                this.imgDataY[ i ] = ( this.normalizedDataY[ i ]
+                                      * maxHeight ) / max;
+            }
+
+
             if ( numValues > 0 ) {
-	            this.NormalizeData();
-                
                 // First point
-                p = new Point( p.X, baseLine - this.normalizedData[ 0 ] );
+                p = new Point( p.X, baseLine - this.imgDataY[ 0 ] );
 
                 // Plot graph
 	            for(int i = 1; i < numValues; ++i) {	                
 	                var nextPoint = new Point(
-	                    p.X + xGap, baseLine - this.normalizedData[ i ]
+                        p.X + xGap, baseLine - this.imgDataY[ i ]
 	                );
 	                
 	                if ( this.Type == ChartType.Bars ) {
@@ -98,15 +114,11 @@ namespace VARSEres.Ui {
 	                this.grf.DrawLine( this.DataPen, p, nextPoint );
 	                
 	                if ( this.ShowLabels ) {
-                        string label = this.values[ i ].ToString();
+                        string label = this.valuesY[ i ].ToString();
                         int tagWidth = (int) this.grf.MeasureString(
                                                             label,
                                                             this.DataFont ).Width;
-		                this.grf.DrawString( label,
-		                                     this.DataFont,
-		                                     this.DataPen.Brush,
-		                                     new Point( nextPoint.X - tagWidth,
-		                                                nextPoint.Y ) );
+                        this.DrawString( nextPoint.X - tagWidth, nextPoint.Y, label );
 	                }
 	                
 	                p = nextPoint;
@@ -115,57 +127,113 @@ namespace VARSEres.Ui {
             
             return;
         }
+
+        void DrawString(int x, int y, string msg)
+        {
+            this.DrawString( x, y, msg, this.DataFont, this.DataPen.Brush );
+        }
+
+        void DrawString(int x, int y, string msg, Font font, Brush brush)
+        {
+            this.DrawString( new Point( x, y ), msg, font, brush );
+        }
+
+        void DrawString(Point pos, string msg)
+        {
+            this.DrawString( pos, msg, this.DataFont, this.DataPen.Brush );
+        }
+
+        void DrawString(Point pos, string msg, Font font, Brush brush)
+        {
+            this.grf.DrawString( msg, font, brush, pos );
+        }
         
         void DrawAxis()
         {
+            string strMaxValueY = Convert.ToString( this.maxValueY );
+            string strMaxValueX = Convert.ToString( this.maxValueX );
+            string strMinValueY = Convert.ToString( this.minValueY );
+            Brush brLegend = this.LegendPen.Brush;
+            Font font = this.LegendFont;
+            int widthLegendY = (int) this.grf.MeasureString( strMaxValueY, font ).Width * 2;
+
             // Y axis
             this.grf.DrawLine( this.AxisPen,
                                this.FramedOrgPosition,
                                new Point(
                                         this.FramedOrgPosition.X,
                                         this.FramedEndPosition.Y ) );
-                                        
+
+            this.DrawString( this.FramedOrgPosition.X - widthLegendY, this.FramedOrgPosition.Y, strMaxValueY, font, brLegend );
+            this.DrawString( this.FramedOrgPosition.X - widthLegendY, this.FramedEndPosition.Y, strMinValueY, font, brLegend );
+
             // X axis
+            int widthLegendX = (int) this.grf.MeasureString( strMaxValueX, font ).Width;
             this.grf.DrawLine( this.AxisPen,
                                new Point(
                                         this.FramedOrgPosition.X,
                                         this.FramedEndPosition.Y ),
                                this.FramedEndPosition );
+
+            this.DrawString( this.FramedEndPosition.X - widthLegendX, this.FramedEndPosition.Y, strMaxValueX, font, brLegend );
         }
 
-        void Build()
-        {
-            Bitmap bmp = new Bitmap( this.Width, this.Height );
-            this.Image = bmp;
-            this.grf = Graphics.FromImage( bmp );
-        }
-        
         void NormalizeData()
         {
-            int maxHeight = this.DataOrgPosition.Y - this.FrameWidth;
-            int maxValue = this.values.Max();
+            this.NormalizeDataX();
+            this.NormalizeDataY();
+        }
 
-            this.normalizedData = this.values.ToArray();
+        void NormalizeDataX()
+        {
+            this.minValueX = this.ValuesX.Min();
+            this.maxValueX = this.ValuesX.Max();
+        }
 
-            for(int i = 0; i < this.normalizedData.Length; ++i) {
-                this.normalizedData[ i ] =
-                                    ( this.values[ i ] * maxHeight ) / maxValue;
+        void NormalizeDataY()
+        {
+            this.normalizedDataY = this.valuesY.ToArray();
+
+            if ( this.normalizedDataY.Length > 0 ) {
+                this.minValueY = this.normalizedDataY.Min();
+                this.maxValueY = this.normalizedDataY.Max();
+
+                // Normalize values
+                for(int i = 0; i < this.normalizedDataY.Length; ++i) {
+                    this.normalizedDataY[ i ] -= minValueY;    
+                }
             }
             
             return;
         }
         
         /// <summary>
-        /// Gets or sets the values used as data.
+        /// Gets or sets the values used as vertical data.
         /// </summary>
         /// <value>The values.</value>
-        public IEnumerable<int> Values {
+        public IEnumerable<int> ValuesY {
             get {
-                return this.values.ToArray();
+                return this.valuesY.ToArray();
             }
             set {
-                this.values.Clear();
-                this.values.AddRange( value );
+                this.valuesY.Clear();
+                this.valuesY.AddRange( value );
+                this.NormalizeDataY();
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the values used as horizontal data.
+        /// </summary>
+        /// <value>The values.</value>
+        public IEnumerable<int> ValuesX {
+            get {
+                return this.valuesX.ToArray();
+            }
+            set {
+                this.valuesX.Clear();
+                this.valuesX.AddRange( value );
+                this.NormalizeDataX();
             }
         }
         
@@ -295,7 +363,13 @@ namespace VARSEres.Ui {
         }
 
         Graphics grf;
-        List<int> values;
-        int[] normalizedData;
+        List<int> valuesX;
+        List<int> valuesY;
+        int[] normalizedDataY;
+        int[] imgDataY;
+        int minValueY;
+        int maxValueY;
+        int minValueX;
+        int maxValueX;
     }
 }

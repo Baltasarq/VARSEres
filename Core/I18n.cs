@@ -13,6 +13,7 @@ namespace VARSEres.Core {
             Summary,
             Loading,
             Chart,
+            NoResult,
         }
 
         /// <summary>English strings.</summary>
@@ -23,6 +24,7 @@ namespace VARSEres.Core {
             "Summary",
             "Loading",
             "Chart",
+            "No result loaded",
         };
 
         /// <summary>Spanish strings.</summary>
@@ -33,6 +35,7 @@ namespace VARSEres.Core {
             "Resumen",
             "Cargando",
             "Gráfica",
+            "No se ha cargado un resultado"
         };
 
         /// <summary>Chose among strings.</summary>

@@ -2,6 +2,7 @@
 
 namespace VARSEres.Ui {
     using System;
+    using System.IO;
     using System.Drawing;
     using System.Globalization;
     using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace VARSEres.Ui {
         /// <summary>Opening a results file.</summary>
         void OnOpen()
         {
-			using(OpenFileDialog openDlg = new OpenFileDialog())
+			using(var openDlg = new OpenFileDialog())
             {
                 openDlg.InitialDirectory = ".";
                 openDlg.Filter = "res files (*.res)|*.res|All files (*.*)|*.*";
@@ -79,62 +80,63 @@ namespace VARSEres.Ui {
         /// <summary>Updates the view of the result.</summary>
         void UpdateResult()
 		{
-            int numTags = 0;
-            int numRR = 0;
-            long accTime = 0;
-            long maxRR = long.MinValue;
-            long minRR = long.MaxValue;
-            ListBox lbAll = this.MainWindowView.LbAll;
-            ListBox lbTags = this.MainWindowView.LbTags;
-            ListBox lbRR = this.MainWindowView.LbRR;
-            TextBox tbSummary = this.MainWindowView.TbSummary;
-
-            // Hide all
-            lbAll.Hide();
-            lbAll.Items.Clear();
-            
-            lbTags.Hide();
-            lbTags.Items.Clear();
-            
-            lbRR.Hide();
-            lbRR.Items.Clear();
-
-            // Run over all events and clasify
             if ( this.Result != null ) {
-                foreach(Result.Event evt in this.Result.Events) {
-                    lbAll.Items.Add( evt.ToString() );
-                    
-                    if ( evt.Type == Result.Event.EventType.Tag ) {
-                        lbTags.Items.Add( evt.ToString() );
-                        ++numTags;
+                int numTags = 0;
+                int numRR = 0;
+                long maxRR = long.MinValue;
+                long minRR = long.MaxValue;
+                ListBox lbAll = this.MainWindowView.LbAll;
+                ListBox lbTags = this.MainWindowView.LbTags;
+                ListBox lbRR = this.MainWindowView.LbRR;
+                TextBox tbSummary = this.MainWindowView.TbSummary;
+
+                // Hide all
+                lbAll.Hide();
+                lbAll.Items.Clear();
+                
+                lbTags.Hide();
+                lbTags.Items.Clear();
+                
+                lbRR.Hide();
+                lbRR.Items.Clear();
+
+                // Run over all events and clasify
+                this.AccTime = 0;
+                if ( this.Result != null ) {
+                    foreach(Result.Event evt in this.Result.Events) {
+                        lbAll.Items.Add( evt.ToString() );
                     }
-                    else
-                    if ( evt.Type == Result.Event.EventType.Beat ) {
-                        var beatEvt = (Result.BeatEvent) evt;
-                    
+
+
+                    foreach(Result.BeatEvent beatEvt in this.Result.Beats) {
                         lbRR.Items.Add( beatEvt.ToString() );
                         ++numRR;
 
-                        accTime += beatEvt.Value;
+                        this.AccTime += beatEvt.Value;
                         maxRR = Math.Max( maxRR, beatEvt.Value );
                         minRR = Math.Min( minRR, beatEvt.Value );
-                    } else {
-                        MessageBox.Show( "Event type is not supported" );
+                    }
+
+                    foreach(Result.TagEvent evt in this.Result.Tags) {                    
+                        lbTags.Items.Add( evt.ToString() );
+                        ++numTags;
                     }
                 }
-            }
-            
-            // End
-            tbSummary.Text = this.BuildReport( numTags, numRR, accTime, maxRR, minRR );
-            this.DrawChart();
+                
+                // End
+                tbSummary.Text = this.BuildReport( numTags, numRR, maxRR, minRR );
+                this.DrawChart();
 
-            // Restore all
-            lbAll.Show();
-            lbTags.Show();
-            lbRR.Show();
+                // Restore all
+                lbAll.Show();
+                lbTags.Show();
+                lbRR.Show();
+            }
+
+            return;
 		}
         
-        string BuildReport(int numTags, int numRR, long accTime, long maxRR, long minRR)
+        string BuildReport(int numTags, int numRR, long maxRR, long minRR)
         {
             var report = @"
 Id:                  ${id}
@@ -168,7 +170,7 @@ Avg RR:              ${avgrr} ms";
             var strAccTime = string.Format(
                                 CultureInfo.CurrentCulture,
                                 "{0:d7}",
-                                accTime );
+                                this.AccTime );
                                 
             var strTime = string.Format(
                                 CultureInfo.CurrentCulture,
@@ -216,18 +218,25 @@ Avg RR:              ${avgrr} ms";
         {
             Chart chart = this.MainWindowView.Chart;
             var hrs = new List<int>();
+            var ts = new List<int>();
+            long accTime = 0;
             
             // Calculate heart beats
             foreach(Result.Event evt in this.Result.Events) {
                 if ( evt is Result.BeatEvent beatEvt ) {
-                    hrs.Add( (int) ( ( (double) 60 / beatEvt.Value ) * 1000 ) );
+                    long rr = beatEvt.Value;
+
+                    hrs.Add( (int) ( (double) 60000 / rr ) );
+                    ts.Add( (int) accTime );
+                    accTime += rr;
                 }
             }
             
             // Finish
             chart.LegendY = "Heart beats (bpm)";
-            chart.LegendX = "Time (seconds)";
-            chart.Values = hrs;
+            chart.LegendX = "Time (ms)";
+            chart.ValuesY = hrs;
+            chart.ValuesX = ts;
             chart.ShowLabels = false;
             chart.DataPen = new Pen( Color.Red ) { Width = 1 };
             chart.AxisPen = new Pen( Color.Black ) { Width = 2 };
@@ -238,7 +247,37 @@ Avg RR:              ${avgrr} ms";
         /// <summary>Saving the results and text files.</summary>
         void OnSave()
         {
-            
+            if ( this.Result != null ) {
+                using(var dirDlg = new FolderBrowserDialog())
+                {
+                    dirDlg.ShowNewFolderButton = true;
+
+                    if ( dirDlg.ShowDialog() == DialogResult.OK ) {
+                        try {
+                            string dirPath = dirDlg.SelectedPath;
+                            string baseFile = "result_" + this.Result.Id;
+                            string tagsFile = Path.Combine( dirPath, baseFile + "_tags.txt" );
+                            string beatsFile = Path.Combine( dirPath, baseFile + "_rr.txt" );
+
+                            using (var tagsWriter = new StreamWriter( tagsFile )) {
+                                using (var beatsWriter = new StreamWriter( beatsFile ))
+                                {
+                                    Persistence.ExportToStdTextFormat(
+                                                                    this.Result,
+                                                                    tagsWriter,
+                                                                    beatsWriter );
+                                }
+                            }
+                        } catch(ArgumentException exc) {
+                            MessageBox.Show( exc.Message, I18n.Get( I18n.Id.Loading ) );
+                        }
+                    }
+                }
+            } else {
+                MessageBox.Show( I18n.Get( I18n.Id.NoResult ) );
+            }
+
+            return;
         }
 
         /// <summary>Shows the about panel.</summary>
@@ -268,5 +307,13 @@ Avg RR:              ${avgrr} ms";
 		public Result Result {
 			get; private set;
 		}
+
+        /// <summary>
+        /// Gets the accumulated time (by calculating it).
+        /// </summary>
+        /// <value>The accumulated time, as a long.</value>
+        public long AccTime {
+            get; private set;
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace VARSEres.Core
 	using System;
 	using System.IO;
     using System.Json;
+    using System.Globalization;
 	using System.Collections.Generic;
 
     public static class Persistence
@@ -167,5 +168,63 @@ namespace VARSEres.Core
                                new Id( usrId ),
                                events );
         }
+
+        /// <summary>
+        /// Creates the standard pair of text files, one for heatbeats,
+        /// and another one to know when the activity changed.
+        /// <param name="result">The result to export.</param>
+        /// <param name="tagsWriter">The writer for the tags file.</param>
+        /// <param name="beatsWriter">The writer for the beats file.</param>
+        /// </summary>
+        public static void ExportToStdTextFormat(Result result, TextWriter tagsWriter, TextWriter beatsWriter)
+        {
+            Result.BeatEvent[] beats = result.Beats;
+            Result.TagEvent[] tags = result.Tags;
+
+            // Create beats file
+            foreach(Result.BeatEvent beatEvt in beats) {
+                beatsWriter.WriteLine( beatEvt.Value );
+            }
+
+            // Create tags file
+            tagsWriter.WriteLine( "Init_time\tTag\tDurat" );
+            for(int i = 0; i < tags.Length; ++i) {
+                Result.TagEvent actEvt = tags[ i ];
+                long millis = actEvt.Time;
+                long timeActWillLast;
+
+                // Determine duration
+                if ( i < ( tags.Length -1 ) ) {
+                    timeActWillLast = tags[ i + 1 ].Time - millis;
+                } else {
+                    timeActWillLast = result.Time - millis;
+                }
+
+                // Experiment's elapsed time
+                double totalSecs = ( (double) millis ) / 1000;
+                int hours = (int) ( totalSecs / 3600 );
+                double remaining = totalSecs % 3600;
+                int mins = (int) ( remaining / 60 );
+                double secs = remaining % 60;
+                string timeStamp = string.Format( CultureInfo.InvariantCulture,
+                                                 "{0:d2}:{1:d2}:{2:00.000}",
+                                                 hours, mins, secs );
+                string timeDuration = string.Format( CultureInfo.InvariantCulture,
+                                                    "{0:00.000}", ( (double) timeActWillLast ) / 1000 );
+
+                tagsWriter.Write( timeStamp );
+
+                // Activity tag
+                tagsWriter.Write( '\t' );
+                tagsWriter.Write( actEvt.Value );
+
+                // Duration
+                tagsWriter.Write( '\t' );
+                tagsWriter.WriteLine( timeDuration );
+            }
+
+            return;
+        }
+
     }
 }

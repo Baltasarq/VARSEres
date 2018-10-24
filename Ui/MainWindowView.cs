@@ -83,8 +83,6 @@ namespace VARSEres.Ui
             };
             
             this.Chart = new Chart( ChartSize, ChartSize ) { Dock = DockStyle.Fill };
-            
-            this.Controls.Add( this.Chart );
 
             toret.TabPages[ (int) Sheets.Summary ].Controls.Add( this.TbSummary );
             toret.TabPages[ (int) Sheets.Chart ].Controls.Add( this.Chart );
