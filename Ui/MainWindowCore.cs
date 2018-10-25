@@ -138,80 +138,33 @@ namespace VARSEres.Ui {
         
         string BuildReport(int numTags, int numRR, long maxRR, long minRR)
         {
-            var report = @"
-Id:                  ${id}
-Id experiment:       ${experimentid}
-Id record:           ${usrid}      
+            var reportTemplate = @"
+Id:                  {0:d7}
+Id experiment:       {1:d7}
+Id record:           {2:d7}      
             
-Number of tags:      ${numtags}
-Number of beats:     ${numbeats}
+Number of tags:      {3:d7}
+Number of beats:     {4:d7}
 
-Reported total time: ${time} ms
-Accumulated RR time: ${acctime} ms
-Max RR:              ${maxrr} ms
-Min RR:              ${minrr} ms
-Avg RR:              ${avgrr} ms";
+Reported total time: {5:d7} ms
+Accumulated RR time: {6:d7} ms
+Max RR:              {7:d7} ms
+Min RR:              {8:d7} ms
+Avg RR:              {9:d7} ms";
 
-            var strId = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                this.Result.Id.Value );
-
-            var strExperimentId = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                this.Result.ExperimentId.Value );
-
-            var strUsrId = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                this.Result.UsrId.Value );
-
-            var strAccTime = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                this.AccTime );
-                                
-            var strTime = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                this.Result.Time );
-                                
-            var strNumTags = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                numTags );
-                                
-            var strNumRR = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                numRR );
-                                
-            var strMinRR = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                minRR );
-                                
-            var strMaxRR = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                maxRR );
-                                
-            var strAvgRR = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0:d7}",
-                                (int) Math.Round( ( (double) maxRR + minRR ) / 2 ) );
-                                
-            return report.Replace( "${id}", strId )
-                                .Replace( "${experimentid}", strExperimentId )
-                                .Replace( "${usrid}", strUsrId )
-                                .Replace( "${numtags}", strNumTags )
-                                .Replace( "${numbeats}", strNumRR )
-                                .Replace( "${time}", strTime )
-                                .Replace( "${acctime}", strAccTime )
-                                .Replace( "${maxrr}", strMaxRR )
-                                .Replace( "${minrr}", strMinRR )
-                                .Replace( "${avgrr}", strAvgRR );
+            return string.Format( CultureInfo.CurrentCulture,
+                                 reportTemplate,
+                                 this.Result.Id.Value,
+                                 this.Result.ExperimentId.Value,
+                                 this.Result.UsrId.Value,
+                                 numTags,
+                                 numRR,
+                                 this.Result.Time,
+                                 this.AccTime,
+                                 maxRR,
+                                 minRR,
+                                 (int) Math.Round( ( (double) maxRR + minRR ) / 2 )
+                                );
         }
         
         void DrawChart()
