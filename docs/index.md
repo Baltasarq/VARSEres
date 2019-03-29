@@ -1,8 +1,10 @@
-# Introduction
+# VARSEres
+
+## Introduction
 
 [VARSE](http://milegroup.github.io/varse) is a tool developed for analyzing the heart beat variations in response to multimedia stimula.
 
-# Description
+## Description
 
 This is a desktop tool that allows you to evaluate the raw data obtained after an experiment has been carried out.
 
