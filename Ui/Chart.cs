@@ -89,15 +89,15 @@ namespace VARSEres.Ui {
             int maxHeight = this.DataOrgPosition.Y - this.FrameWidth;
             int max = this.maxValueY - this.minValueY;
 
-            this.imgDataY = new int[ this.normalizedDataY.Length ];
-
-            for(int i = 0; i < this.imgDataY.Length; ++i) {
-                this.imgDataY[ i ] = ( this.normalizedDataY[ i ]
-                                      * maxHeight ) / max;
-            }
-
-
             if ( numValues > 0 ) {
+                // Prepare normalized data
+                this.imgDataY = new int[ this.normalizedDataY.Length ];
+
+                for(int i = 0; i < this.imgDataY.Length; ++i) {
+                    this.imgDataY[ i ] = ( this.normalizedDataY[ i ]
+                                      * maxHeight ) / max;
+                }
+
                 // First point
                 p = new Point( p.X, baseLine - this.imgDataY[ 0 ] );
 
